@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Glass Bridge Game</title>
+  <style>
+    body {
+      background: #020617;
+      color: #22c55e;
+      font-family: monospace;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 20px;
+    }
+
+    .box {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #22c55e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .safe {
+      background: #16a34a;
+    }
+
+    .fall {
+      background: #dc2626;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #22c55e;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧊 Glass Bridge</h1>
+<h2 id="money">Money: ₹0</h2>
+
+<div id="game"></div>
+
+<button onclick="restart()">Restart</button>
+
+<script>
+  const rows = 6;
+  let currentRow = 0;
+  let money = 0;
+  const reward = [100, 300, 700, 1500, 3000, 6000];
+
+  const game = document.getElementById("game");
+
+  const safePath = [];
+  for(let i=0;i<rows;i++){
+    safePath.push(Math.floor(Math.random()*2));
+  }
+
+  function createRow(rowIndex){
+    const row = document.createElement("div");
+    row.className = "row";
+
+    for(let i=0;i<2;i++){
+      const box = document.createElement("div");
+      box.className = "box";
+      box.innerText = "?";
+
+      box.onclick = () => chooseBox(box, i, rowIndex);
+      row.appendChild(box);
+    }
+
+    game.appendChild(row);
+  }
+
+  function chooseBox(box, choice, rowIndex){
+    if(rowIndex !== currentRow) return;
+
+    const boxes = game.children[rowIndex].children;
+
+    if(choice === safePath[rowIndex]){
+      box.classList.add("safe");
+      box.innerText = "SAFE";
+      money += reward[rowIndex];
+      document.getElementById("money").innerText =
+        "Money: ₹" + money;
+      currentRow++;
+
+      if(currentRow === rows){
+        alert("🎉 You won ₹" + money);
+      }
+    } else {
+      box.classList.add("fall");
+      box.innerText = "💀";
+      alert("❌ You fell! Final Money: ₹" + money);
+      disableGame();
+    }
+
+    for(let b of boxes){
+      b.onclick = null;
+    }
+  }
+
+  function disableGame(){
+    for(let r of game.children){
+      for(let b of r.children){
+        b.onclick = null;
+      }
+    }
+  }
+
+  function restart(){
+    location.reload();
+  }
+
+  for(let i=0;i<rows;i++){
+    createRow(i);
+  }
+</script>
+
+</body>
+</html>
