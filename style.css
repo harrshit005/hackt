@@ -1,0 +1,24 @@
+body {
+  background: #020617;
+  color: #22c55e;
+  font-family: monospace;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 200px);
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.card {
+  border: 1px solid #22c55e;
+  padding: 30px;
+  cursor: pointer;
+}
+
+.card:hover {
+  box-shadow: 0 0 12px #22c55e;
+}
