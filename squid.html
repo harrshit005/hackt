@@ -71,25 +71,47 @@ let gameOver = false;
 const gameDiv = document.getElementById("game");
 const pointsDiv = document.getElementById("points");
 
-let safePath=[];
-for(let i=0;i<TOTAL_LEVELS;i++){
-  safePath.push(i<2 ? -1 : Math.floor(Math.random()*2));
-}
+let safePath = [];
 
-for(let i=0;i<TOTAL_LEVELS;i++){
-  const row=document.createElement("div");
-  row.className="row";
-  for(let j=0;j<2;j++){
-    const box=document.createElement("div");
-    box.className="box";
-    box.innerText="Choose";
-    box.onclick=()=>handleClick(i,j,box,row);
-    row.appendChild(box);
+/* -------- INIT GAME -------- */
+function initGame(){
+  // hide popups
+  document.getElementById("authBox").style.display="none";
+  document.getElementById("resultBox").style.display="none";
+
+  // reset values
+  currentLevel = 0;
+  points = 0;
+  gameOver = false;
+  pointsDiv.innerText = "Points: 0";
+
+  // clear board
+  gameDiv.innerHTML = "";
+
+  // generate safe path
+  safePath = [];
+  for(let i=0;i<TOTAL_LEVELS;i++){
+    safePath.push(i<2 ? -1 : Math.floor(Math.random()*2));
   }
-  gameDiv.appendChild(row);
-}
-activateRow(0);
 
+  // create board
+  for(let i=0;i<TOTAL_LEVELS;i++){
+    const row=document.createElement("div");
+    row.className="row";
+    for(let j=0;j<2;j++){
+      const box=document.createElement("div");
+      box.className="box";
+      box.innerText="Choose";
+      box.onclick=()=>handleClick(i,j,box,row);
+      row.appendChild(box);
+    }
+    gameDiv.appendChild(row);
+  }
+
+  activateRow(0);
+}
+
+/* -------- GAME LOGIC -------- */
 function handleClick(r,c,box,row){
   if(gameOver||r!==currentLevel) return;
 
@@ -127,9 +149,8 @@ function disableRow(row){
     b.style.opacity=".5";
   });
 }
-function restart(){location.reload();}
 
-/* RESULT + SAVE FLOW */
+/* -------- RESULT FLOW -------- */
 function showResult(msg){
   document.getElementById("resultText").innerText=msg;
   document.getElementById("finalScore").innerText="Score: "+points;
@@ -139,6 +160,14 @@ function showSaveBox(){
   document.getElementById("resultBox").style.display="none";
   document.getElementById("authBox").style.display="flex";
 }
+
+/* -------- RESTART -------- */
+function restart(){
+  initGame();
+}
+
+/* start game first time */
+window.onload = initGame;
 </script>
 
 <!-- FIREBASE -->
@@ -159,6 +188,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+/* -------- SAVE SCORE -------- */
 function saveScore(){
   const name=document.getElementById("playerName").value.trim();
   if(!name){alert("Enter username");return;}
