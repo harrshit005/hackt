@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Squid Glass Game</title>
 
+let points = 0;
+
+
 <style>
     body {
         background: linear-gradient(180deg, #020617, #020617);
@@ -233,6 +236,35 @@ function playerFell() {
 import { getDatabase, ref, set, push } 
 from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 const database = getDatabase(app);
+
+<button onclick="saveScore()">Save</button>
+<script>
+function saveScore() {
+  const name = document.getElementById("playerName").value.trim();
+
+  if (!name) {
+    alert("Please enter username");
+    return;
+  }
+
+  console.log("Saving score for:", name); // DEBUG
+
+  db.ref("scores").push({
+    username: name,
+    points: points,
+    time: new Date().toISOString()
+  })
+  .then(() => {
+    alert("Score saved successfully!");
+    document.getElementById("authBox").style.display = "none";
+  })
+  .catch(err => {
+    console.error("Save error:", err);
+    alert("Error saving score");
+  });
+}
+</script>
+
 
 
 
