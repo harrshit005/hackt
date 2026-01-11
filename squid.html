@@ -1,132 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Glass Bridge Game</title>
-  <style>
+<meta charset="UTF-8">
+<title>Squid Glass Game</title>
+
+<style>
     body {
-      background: #020617;
-      color: #22c55e;
-      font-family: monospace;
-      text-align: center;
+        background: #0f172a;
+        color: white;
+        font-family: Arial;
+        text-align: center;
+    }
+
+    h1 {
+        margin-top: 20px;
+    }
+
+    #points {
+        font-size: 22px;
+        margin: 10px;
     }
 
     .row {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin: 20px;
+        display: flex;
+        justify-content: center;
+        margin: 10px;
     }
 
     .box {
-      width: 100px;
-      height: 100px;
-      border: 2px solid #22c55e;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
+        width: 100px;
+        height: 60px;
+        margin: 10px;
+        background: #334155;
+        border-radius: 8px;
+        cursor: pointer;
+        line-height: 60px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .box:hover {
+        background: #475569;
     }
 
     .safe {
-      background: #16a34a;
+        background: #16a34a !important;
     }
 
     .fall {
-      background: #dc2626;
+        background: #dc2626 !important;
+    }
+
+    #status {
+        margin-top: 15px;
+        font-size: 18px;
     }
 
     button {
-      padding: 10px 20px;
-      background: #22c55e;
-      border: none;
-      cursor: pointer;
-      margin-top: 20px;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
     }
-  </style>
+</style>
 </head>
+
 <body>
 
-<h1>🧊 Glass Bridge</h1>
-<h2 id="money">Money: ₹0</h2>
-
+<h1>🦑 Squid Glass Game</h1>
+<div id="points">Points: 0</div>
 <div id="game"></div>
+<div id="status"></div>
 
-<button onclick="restart()">Restart</button>
+<button onclick="restart()">Restart Game</button>
 
 <script>
-  const rows = 6;
-  let currentRow = 0;
-  let money = 0;
-  const reward = [100, 300, 700, 1500, 3000, 6000];
+let level = 1;
+let points = 0;
+let gameOver = false;
 
-  const game = document.getElementById("game");
+const gameDiv = document.getElementById("game");
+const statusDiv = document.getElementById("status");
+const pointsDiv = document.getElementById("points");
 
-  const safePath = [];
-  for(let i=0;i<rows;i++){
-    safePath.push(Math.floor(Math.random()*2));
-  }
+function createRow() {
+    if (level > 12 || gameOver) return;
 
-  function createRow(rowIndex){
     const row = document.createElement("div");
     row.className = "row";
 
-    for(let i=0;i<2;i++){
-      const box = document.createElement("div");
-      box.className = "box";
-      box.innerText = "?";
+    let safeBox;
 
-      box.onclick = () => chooseBox(box, i, rowIndex);
-      row.appendChild(box);
-    }
-
-    game.appendChild(row);
-  }
-
-  function chooseBox(box, choice, rowIndex){
-    if(rowIndex !== currentRow) return;
-
-    const boxes = game.children[rowIndex].children;
-
-    if(choice === safePath[rowIndex]){
-      box.classList.add("safe");
-      box.innerText = "SAFE";
-      money += reward[rowIndex];
-      document.getElementById("money").innerText =
-        "Money: ₹" + money;
-      currentRow++;
-
-      if(currentRow === rows){
-        alert("🎉 You won ₹" + money);
-      }
+    if (level <= 2) {
+        safeBox = 0; // both pass, logic forced safe
     } else {
-      box.classList.add("fall");
-      box.innerText = "💀";
-      alert("❌ You fell! Final Money: ₹" + money);
-      disableGame();
+        safeBox = Math.floor(Math.random() * 2);
     }
 
-    for(let b of boxes){
-      b.onclick = null;
+    for (let i = 0; i < 2; i++) {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.innerText = "Choose";
+
+        box.onclick = () => {
+            if (gameOver) return;
+
+            if (level <= 2 || i === safeBox) {
+                box.classList.add("safe");
+                points += 10;
+                level++;
+                pointsDiv.innerText = "Points: " + points;
+                statusDiv.innerText = "Level Passed ✅";
+                setTimeout(createRow, 600);
+            } else {
+                box.classList.add("fall");
+                statusDiv.innerText = "❌ You Fell! Game Over";
+                gameOver = true;
+            }
+
+            Array.from(row.children).forEach(b => b.onclick = null);
+        };
+
+        row.appendChild(box);
     }
-  }
 
-  function disableGame(){
-    for(let r of game.children){
-      for(let b of r.children){
-        b.onclick = null;
-      }
-    }
-  }
+    gameDiv.appendChild(row);
+}
 
-  function restart(){
-    location.reload();
-  }
+function restart() {
+    level = 1;
+    points = 0;
+    gameOver = false;
+    gameDiv.innerHTML = "";
+    statusDiv.innerText = "";
+    pointsDiv.innerText = "Points: 0";
+    createRow();
+}
 
-  for(let i=0;i<rows;i++){
-    createRow(i);
-  }
+createRow();
 </script>
 
 </body>
 </html>
+
