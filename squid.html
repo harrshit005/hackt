@@ -4,74 +4,32 @@
 <meta charset="UTF-8">
 <title>Squid Glass Game</title>
 
-let points = 0;
-
-
 <style>
-    body {
-        background: linear-gradient(180deg, #020617, #020617);
-        color: white;
-        font-family: Arial;
-        text-align: center;
-    }
+body{
+  background:#020617;color:white;font-family:Arial;text-align:center;
+}
+.row{display:flex;justify-content:center;margin:10px}
+.box{
+  width:120px;height:60px;margin:0 10px;
+  background:#334155;border-radius:8px;
+  line-height:60px;font-weight:bold;
+  cursor:not-allowed;opacity:.5;
+}
+.active{cursor:pointer;opacity:1}
+.safe{background:#16a34a!important}
+.fall{background:#dc2626!important}
 
-    h1 {
-        margin-top: 20px;
-    }
-
-    #points {
-        font-size: 22px;
-        margin-bottom: 20px;
-    }
-
-    .row {
-        display: flex;
-        justify-content: center;
-        margin: 12px 0;
-    }
-
-    .box {
-        width: 120px;
-        height: 60px;
-        margin: 0 10px;
-        background: #334155;
-        border-radius: 10px;
-        cursor: not-allowed;
-        line-height: 60px;
-        font-size: 18px;
-        font-weight: bold;
-        transition: 0.3s;
-        opacity: 0.5;
-    }
-
-    .active {
-        cursor: pointer;
-        opacity: 1;
-    }
-
-    .box:hover.active {
-        background: #475569;
-    }
-
-    .safe {
-        background: #16a34a !important;
-    }
-
-    .fall {
-        background: #dc2626 !important;
-    }
-
-    #status {
-        margin-top: 20px;
-        font-size: 20px;
-    }
-
-    button {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-    }
+/* overlays */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:#000a;display:flex;
+  align-items:center;justify-content:center;
+}
+.card{
+  background:#111;padding:20px;
+  border-radius:10px;width:280px;
+}
+button{padding:10px;width:100%;margin-top:10px;cursor:pointer}
 </style>
 </head>
 
@@ -79,11 +37,30 @@ let points = 0;
 
 <h1>🦑 Squid Glass Game</h1>
 <div id="points">Points: 0</div>
-
 <div id="game"></div>
-<div id="status"></div>
 
-<button onclick="restart()">Restart Game</button>
+<button onclick="restart()">Restart</button>
+
+<!-- RESULT BOX -->
+<div id="resultBox" class="overlay">
+  <div class="card">
+    <h2 id="resultText">Game Over</h2>
+    <p id="finalScore">Score: 0</p>
+    <button style="background:#22c55e;border:none;color:white"
+      onclick="showSaveBox()">Save Score</button>
+  </div>
+</div>
+
+<!-- SAVE BOX -->
+<div id="authBox" class="overlay">
+  <div class="card">
+    <h3>Save Your Score</h3>
+    <input id="playerName" placeholder="Username"
+      style="width:100%;padding:8px">
+    <button style="background:#22c55e;border:none;color:white"
+      onclick="saveScore()">Save</button>
+  </div>
+</div>
 
 <script>
 const TOTAL_LEVELS = 12;
@@ -92,180 +69,113 @@ let points = 0;
 let gameOver = false;
 
 const gameDiv = document.getElementById("game");
-const statusDiv = document.getElementById("status");
 const pointsDiv = document.getElementById("points");
 
-let safePath = [];
-
-// generate safe path
-for (let i = 0; i < TOTAL_LEVELS; i++) {
-    if (i < 2) {
-        safePath.push(-1); // both safe
-    } else {
-        safePath.push(Math.floor(Math.random() * 2));
-    }
+let safePath=[];
+for(let i=0;i<TOTAL_LEVELS;i++){
+  safePath.push(i<2 ? -1 : Math.floor(Math.random()*2));
 }
 
-// create all rows at once
-for (let i = 0; i < TOTAL_LEVELS; i++) {
-    const row = document.createElement("div");
-    row.className = "row";
-
-    for (let j = 0; j < 2; j++) {
-        const box = document.createElement("div");
-        box.className = "box";
-        box.innerText = "Choose";
-
-        box.onclick = () => handleClick(i, j, box, row);
-
-        row.appendChild(box);
-    }
-    gameDiv.appendChild(row);
+for(let i=0;i<TOTAL_LEVELS;i++){
+  const row=document.createElement("div");
+  row.className="row";
+  for(let j=0;j<2;j++){
+    const box=document.createElement("div");
+    box.className="box";
+    box.innerText="Choose";
+    box.onclick=()=>handleClick(i,j,box,row);
+    row.appendChild(box);
+  }
+  gameDiv.appendChild(row);
 }
-
-// activate first row
 activateRow(0);
 
-function handleClick(rowIndex, boxIndex, box, row) {
-    if (gameOver || rowIndex !== currentLevel) return;
+function handleClick(r,c,box,row){
+  if(gameOver||r!==currentLevel) return;
 
-    const safe = safePath[rowIndex];
-
-    if (safe === -1 || boxIndex === safe) {
-        box.classList.add("safe");
-        points += 10;
-        pointsDiv.innerText = "Points: " + points;
-
-        disableRow(row);
-
-        currentLevel++;
-        if (currentLevel < TOTAL_LEVELS) {
-            activateRow(currentLevel);
-        } else {
-            statusDiv.innerText = "🎉 You Won the Game!";
-        }
-    } else {
-        box.classList.add("fall");
-        statusDiv.innerText = "❌ You Fell! Game Over";
-        gameOver = true;
+  const safe=safePath[r];
+  if(safe===-1||c===safe){
+    box.classList.add("safe");
+    points+=10;
+    pointsDiv.innerText="Points: "+points;
+    disableRow(row);
+    currentLevel++;
+    if(currentLevel<TOTAL_LEVELS){
+      activateRow(currentLevel);
+    }else{
+      showResult("🎉 You Won!");
     }
+  }else{
+    box.classList.add("fall");
+    gameOver=true;
+    showResult("❌ You Fell!");
+  }
 }
 
-function activateRow(index) {
-    const row = gameDiv.children[index];
-    Array.from(row.children).forEach(b => {
-        b.classList.add("active");
-        b.style.cursor = "pointer";
-        b.style.opacity = "1";
-    });
+function activateRow(i){
+  const row=gameDiv.children[i];
+  [...row.children].forEach(b=>{
+    b.classList.add("active");
+    b.style.cursor="pointer";
+    b.style.opacity="1";
+  });
 }
-
-function disableRow(row) {
-    Array.from(row.children).forEach(b => {
-        b.classList.remove("active");
-        b.style.cursor = "not-allowed";
-        b.style.opacity = "0.7";
-    });
+function disableRow(row){
+  [...row.children].forEach(b=>{
+    b.classList.remove("active");
+    b.style.cursor="not-allowed";
+    b.style.opacity=".5";
+  });
 }
+function restart(){location.reload();}
 
-function restart() {
-    location.reload();
+/* RESULT + SAVE FLOW */
+function showResult(msg){
+  document.getElementById("resultText").innerText=msg;
+  document.getElementById("finalScore").innerText="Score: "+points;
+  document.getElementById("resultBox").style.display="flex";
+}
+function showSaveBox(){
+  document.getElementById("resultBox").style.display="none";
+  document.getElementById("authBox").style.display="flex";
 }
 </script>
-<!-- Firebase SDK -->
+
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "PASTE_FROM_FIREBASE",
-    authDomain: "PASTE_FROM_FIREBASE",
-    databaseURL: "PASTE_FROM_FIREBASE",
-    projectId: "PASTE_FROM_FIREBASE",
-    storageBucket: "PASTE_FROM_FIREBASE",
-    messagingSenderId: "PASTE_FROM_FIREBASE",
-    appId: "PASTE_FROM_FIREBASE"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDgCwip2qLiHKPcndENP0-PogHONsFaCpg",
+  authDomain: "glass-game-a61c4.firebaseapp.com",
+  databaseURL: "https://glass-game-a61c4-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "glass-game-a61c4",
+  storageBucket: "glass-game-a61c4.appspot.com",
+  messagingSenderId: "396217167380",
+  appId: "1:396217167380:web:5ea65a21e10d39273d4101"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-</script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDgCwip2qLiHKPcndENP0-PogHONsFaCpg",
-    authDomain: "glass-game-a61c4.firebaseapp.com",
-    databaseURL: "https://glass-game-a61c4-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "glass-game-a61c4",
-    storageBucket: "glass-game-a61c4.firebasestorage.app",
-    messagingSenderId: "396217167380",
-    appId: "1:396217167380:web:5ea65a21e10d39273d4101",
-    measurementId: "G-NW0ZHR1FJ2"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-<div id="authBox" style="display:none; position:fixed; inset:0; background:#000a; display:flex; align-items:center; justify-content:center;">
-  <div style="background:#111; padding:20px; border-radius:10px; text-align:center; width:260px;">
-    <h3 style="color:white">Save Your Score</h3>
-    <input id="playerName" placeholder="Username"
-           style="width:100%; padding:8px; margin:10px 0;" />
-    <button onclick="saveScore()"
-            style="width:100%; padding:10px; background:#22c55e; border:none; color:white;">
-      Save
-    </button>
-  </div>
-</div>
-
-</html>
-
-function playerFell() {
-  document.getElementById("authBox").style.display = "flex";
-}
-
-import { getDatabase, ref, set, push } 
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-const database = getDatabase(app);
-
-<button onclick="saveScore()">Save</button>
-<script>
-function saveScore() {
-  const name = document.getElementById("playerName").value.trim();
-
-  if (!name) {
-    alert("Please enter username");
-    return;
-  }
-
-  console.log("Saving score for:", name); // DEBUG
+function saveScore(){
+  const name=document.getElementById("playerName").value.trim();
+  if(!name){alert("Enter username");return;}
 
   db.ref("scores").push({
-    username: name,
-    points: points,
-    time: new Date().toISOString()
-  })
-  .then(() => {
-    alert("Score saved successfully!");
-    document.getElementById("authBox").style.display = "none";
-  })
-  .catch(err => {
-    console.error("Save error:", err);
+    username:name,
+    points:points,
+    time:new Date().toISOString()
+  }).then(()=>{
+    alert("Score saved!");
+    document.getElementById("authBox").style.display="none";
+  }).catch(e=>{
     alert("Error saving score");
+    console.error(e);
   });
 }
 </script>
 
-
-
-
-
+</body>
+</html>
