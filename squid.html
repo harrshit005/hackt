@@ -6,7 +6,7 @@
 
 <style>
     body {
-        background: #0f172a;
+        background: linear-gradient(180deg, #020617, #020617);
         color: white;
         font-family: Arial;
         text-align: center;
@@ -18,28 +18,35 @@
 
     #points {
         font-size: 22px;
-        margin: 10px;
+        margin-bottom: 20px;
     }
 
     .row {
         display: flex;
         justify-content: center;
-        margin: 10px;
+        margin: 12px 0;
     }
 
     .box {
-        width: 100px;
+        width: 120px;
         height: 60px;
-        margin: 10px;
+        margin: 0 10px;
         background: #334155;
-        border-radius: 8px;
-        cursor: pointer;
+        border-radius: 10px;
+        cursor: not-allowed;
         line-height: 60px;
+        font-size: 18px;
         font-weight: bold;
         transition: 0.3s;
+        opacity: 0.5;
     }
 
-    .box:hover {
+    .active {
+        cursor: pointer;
+        opacity: 1;
+    }
+
+    .box:hover.active {
         background: #475569;
     }
 
@@ -52,8 +59,8 @@
     }
 
     #status {
-        margin-top: 15px;
-        font-size: 18px;
+        margin-top: 20px;
+        font-size: 20px;
     }
 
     button {
@@ -69,13 +76,15 @@
 
 <h1>🦑 Squid Glass Game</h1>
 <div id="points">Points: 0</div>
+
 <div id="game"></div>
 <div id="status"></div>
 
 <button onclick="restart()">Restart Game</button>
 
 <script>
-let level = 1;
+const TOTAL_LEVELS = 12;
+let currentLevel = 0;
 let points = 0;
 let gameOver = false;
 
@@ -83,63 +92,85 @@ const gameDiv = document.getElementById("game");
 const statusDiv = document.getElementById("status");
 const pointsDiv = document.getElementById("points");
 
-function createRow() {
-    if (level > 12 || gameOver) return;
+let safePath = [];
 
+// generate safe path
+for (let i = 0; i < TOTAL_LEVELS; i++) {
+    if (i < 2) {
+        safePath.push(-1); // both safe
+    } else {
+        safePath.push(Math.floor(Math.random() * 2));
+    }
+}
+
+// create all rows at once
+for (let i = 0; i < TOTAL_LEVELS; i++) {
     const row = document.createElement("div");
     row.className = "row";
 
-    let safeBox;
-
-    if (level <= 2) {
-        safeBox = 0; // both pass, logic forced safe
-    } else {
-        safeBox = Math.floor(Math.random() * 2);
-    }
-
-    for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
         const box = document.createElement("div");
         box.className = "box";
         box.innerText = "Choose";
 
-        box.onclick = () => {
-            if (gameOver) return;
-
-            if (level <= 2 || i === safeBox) {
-                box.classList.add("safe");
-                points += 10;
-                level++;
-                pointsDiv.innerText = "Points: " + points;
-                statusDiv.innerText = "Level Passed ✅";
-                setTimeout(createRow, 600);
-            } else {
-                box.classList.add("fall");
-                statusDiv.innerText = "❌ You Fell! Game Over";
-                gameOver = true;
-            }
-
-            Array.from(row.children).forEach(b => b.onclick = null);
-        };
+        box.onclick = () => handleClick(i, j, box, row);
 
         row.appendChild(box);
     }
-
     gameDiv.appendChild(row);
 }
 
-function restart() {
-    level = 1;
-    points = 0;
-    gameOver = false;
-    gameDiv.innerHTML = "";
-    statusDiv.innerText = "";
-    pointsDiv.innerText = "Points: 0";
-    createRow();
+// activate first row
+activateRow(0);
+
+function handleClick(rowIndex, boxIndex, box, row) {
+    if (gameOver || rowIndex !== currentLevel) return;
+
+    const safe = safePath[rowIndex];
+
+    if (safe === -1 || boxIndex === safe) {
+        box.classList.add("safe");
+        points += 10;
+        pointsDiv.innerText = "Points: " + points;
+
+        disableRow(row);
+
+        currentLevel++;
+        if (currentLevel < TOTAL_LEVELS) {
+            activateRow(currentLevel);
+        } else {
+            statusDiv.innerText = "🎉 You Won the Game!";
+        }
+    } else {
+        box.classList.add("fall");
+        statusDiv.innerText = "❌ You Fell! Game Over";
+        gameOver = true;
+    }
 }
 
-createRow();
+function activateRow(index) {
+    const row = gameDiv.children[index];
+    Array.from(row.children).forEach(b => {
+        b.classList.add("active");
+        b.style.cursor = "pointer";
+        b.style.opacity = "1";
+    });
+}
+
+function disableRow(row) {
+    Array.from(row.children).forEach(b => {
+        b.classList.remove("active");
+        b.style.cursor = "not-allowed";
+        b.style.opacity = "0.7";
+    });
+}
+
+function restart() {
+    location.reload();
+}
 </script>
 
 </body>
 </html>
+
 
