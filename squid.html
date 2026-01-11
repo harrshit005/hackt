@@ -188,7 +188,23 @@ function restart() {
   const db = firebase.database();
 </script>
 
-</body>
+<div id="authBox" style="display:none; position:fixed; inset:0; background:#000a; display:flex; align-items:center; justify-content:center;">
+  <div style="background:#111; padding:20px; border-radius:10px; text-align:center; width:260px;">
+    <h3 style="color:white">Save Your Score</h3>
+    <input id="playerName" placeholder="Username"
+           style="width:100%; padding:8px; margin:10px 0;" />
+    <button onclick="saveScore()"
+            style="width:100%; padding:10px; background:#22c55e; border:none; color:white;">
+      Save
+    </button>
+  </div>
+</div>
+
 </html>
+
+function playerFell() {
+  document.getElementById("authBox").style.display = "flex";
+}
+
 
 
