@@ -1,6 +1,6 @@
 # hackt
 
-![How it looks] (Game.png)
+![How it looks] (Game.jpg)
 
 
 
